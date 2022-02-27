@@ -1,13 +1,15 @@
 import math
 import pandas as pd
 
-class Mean_LERP_Portfolio:
-    def __init__(self, mean_periods = 5, min_lerp = 0, max_lerp = 1, include_tags = [], exclude_tags = []):
+class Mean_LERP:
+    def __init__(self, mean_periods = 5, min_lerp = 0, max_lerp = 1, include_tags = [], exclude_tags = [], included = {}, excluded = {}):
         self.mean_periods = mean_periods
         self.min_lerp = min_lerp
         self.max_lerp = max_lerp
         self.include_tags = include_tags
         self.exclude_tags = exclude_tags
+        self.included = included
+        self.excluded = excluded
         
     def Calc_Predictor_Weights(self, predictors):
         tot_series = None
