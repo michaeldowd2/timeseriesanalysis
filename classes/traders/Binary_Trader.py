@@ -1,11 +1,10 @@
 class Binary_Trader:
-    def __init__(self, threshold, exit_method, capture_thresh = 0.01, trade_longs = True, trade_shorts = True, tags = [], included = {}, excluded = {}):
+    def __init__(self, threshold, exit_method, capture_thresh = 0.01, trade_longs = True, trade_shorts = True, included = {}, excluded = {}):
         self.exit_method = exit_method
         self.threshold = threshold
         self.capture_thresh = capture_thresh
         self.trade_longs = trade_longs
         self.trade_shorts = trade_shorts
-        self.tags = tags
         self.included = included
         self.excluded = excluded
 
