@@ -10,9 +10,9 @@ class Benchmark:
         self.included = included
         self.excluded = excluded
         
-    def GenerateModelResults(self, dataset, base_prices, regression_range):
+    def GenerateModelResults(self, dataset, base_prices, run_range):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
-        for i in regression_range:
+        for i in range(run_range[0], run_range[-1]+2):
             date = dataset.index[i]
             prev_date = dataset.index[i-1]
             
@@ -28,4 +28,5 @@ class Benchmark:
             res_dict['test_F1'].append(0)
             res_dict['prediction'].append(prediction)
 
-        return pd.DataFrame(res_dict)
+        res = pd.DataFrame(res_dict).set_index('date')
+        return res

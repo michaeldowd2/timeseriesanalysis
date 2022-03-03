@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 
 from sklearn.model_selection import GridSearchCV
-
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -40,7 +39,7 @@ class Sklearn_GSCV:
     
     def GenerateModelResults(self, dataset, base_prices, regression_range):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
-        for i in regression_range:
+        for i in range(regression_range[0], regression_range[-1]+2):
             date = dataset.index[i]
             prev_date = dataset.index[i-1]
 
@@ -57,7 +56,8 @@ class Sklearn_GSCV:
             res_dict['test_F1'].append(test_F1)
             res_dict['prediction'].append(prediction)
 
-        return pd.DataFrame(res_dict)
+        res = pd.DataFrame(res_dict).set_index('date')
+        return res
     
     def TrainForDate(self, sampled_df, test_size, model, param_grid, pca_comps):
         data = sampled_df.to_numpy()

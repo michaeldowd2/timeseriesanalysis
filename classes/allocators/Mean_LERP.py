@@ -16,8 +16,8 @@ class Mean_LERP:
             #pred['min'], pred['max'] = 0.0, 0.0
             #pred[mean_cl] = pred['perc_pal'].rolling(self.mean_periods).mean()
             pred[mean_cl_s] = pred['perc_pal'].rolling(self.mean_periods).mean().shift(1)
-            pred['lerp'] = 0.0
-            pred['weight'] = 0.0
+            pred['lerp'] = 1.0
+            pred['weight'] = 1.0
             
         for i in range(0, len(predictors[0].index)):
             minval, maxval, tot = 10000, -10000, 0.0
@@ -36,14 +36,14 @@ class Mean_LERP:
                 val = pred.iloc[i][mean_cl_s]
                 lerp = self.min_lerp + (val-minval) / (maxval-minval) * (self.max_lerp - self.min_lerp)
                 tot += lerp
-                #print('i: ' + str(i) + ', min: ' + str(minval) + ', max: ' + str(maxval) + ', val: ' + str(val) + ', weight: ' + str(weight))
+                #print('i: ' + str(i) + ', min: ' + str(minval) + ', max: ' + str(maxval) + ', val: ' + str(val) + ', lerp: ' + str(lerp) + ', tot: ' + str(tot) + ', weight: ' + str(lerp/tot))
                 if not math.isnan(lerp):
                     pred.at[i, 'lerp'] = lerp
                 #print(pred)
             
             for pred in predictors:
                 lerp = pred.at[i, 'lerp']
-                if lerp > 0.0:
+                if not math.isnan(tot) and lerp > 0.0:
                     pred.at[i, 'weight'] = lerp/tot
         return predictors
     
