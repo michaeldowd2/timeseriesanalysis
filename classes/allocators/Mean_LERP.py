@@ -54,7 +54,7 @@ class Mean_LERP:
             port_df = pd.concat(frames)
             port_df['weighted_pal'] = port_df['perc_pal'] * port_df['weight']
             port_df['amount'] = port_df['weight'] * port_df['prediction']
-            port_df = port_df[['date','dataset','classifier','predictor','exit_method','bought_at','prediction','5D_mean_pal_S1','lerp','weight','amount','sold_at','perc_pal','weighted_pal']]
+            port_df = port_df[['date','price','dataset','classifier','predictor','exit_method','bought_at','prediction','5D_mean_pal_S1','lerp','weight','amount','sold_at','perc_pal','weighted_pal']]
             return port_df
         else:
             print('no traders included in allocator')

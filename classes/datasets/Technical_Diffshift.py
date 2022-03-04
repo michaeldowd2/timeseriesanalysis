@@ -3,8 +3,8 @@ import pandas as pd
 from ta import add_all_ta_features
 
 class Technical_Diffshift:
-    def __init__(self, label, symbols, pivot_cols, pivots, technical_cols, peak_cols = ['open'], label_col = 'close', included = {}, excluded = {}):
-        self.label = label
+    def __init__(self, symbols, pivot_cols, pivots, technical_cols, peak_cols = ['open'], label_col = 'close', included = {}, excluded = {}):
+        #self.label = label
         self.symbols = symbols
         self.pivot_cols = pivot_cols
         self.pivots = pivots
@@ -14,7 +14,7 @@ class Technical_Diffshift:
         self.included = included
         self.excluded = excluded
     
-    def CreateDataset(self, stock_dict, vol_period = 20, target_std = 0.015):
+    def CreateDataset(self, label_symbol, stock_dict, vol_period = 20, target_std = 0.015):
         full_res, label_df, base_prices = [], None, None
         for symbol in self.symbols: 
             sym_dfs = []
@@ -28,20 +28,11 @@ class Technical_Diffshift:
             sym_df = pd.concat(sym_dfs, axis=1, join="inner").add_prefix(symbol + '_') #combined symbol data
             full_res.append(sym_df)
             
-            if symbol == self.label:
+            if symbol == label_symbol:
                 label_df = df
                 label_df['label'] = np.where(label_df['close']>label_df['open'], 1, 0)
                 label_df = label_df['label']
                 base_prices = df[['open','high','low','close']]
-                #base_prices['open_1D_diff'] = base_prices['open'].rolling(window=2).apply(lambda x: (x.iloc[1] - x.iloc[0]))
-                #base_prices['open_1D_diff_perc'] = base_prices['open'].rolling(window=2).apply(lambda x: (x.iloc[1] - x.iloc[0])/x.iloc[0])
-                #base_prices['open_1D_diff_perc_'+str(vol_period)+'D_STD'] = base_prices['open_1D_diff_perc'].rolling(vol_period).std()
-                #base_prices['target_STD'] = target_std
-                #base_prices['leverage'] = base_prices['target_STD'] / base_prices['open_1D_diff_perc_'+str(vol_period)+'D_STD']
-                #base_prices['norm_open'] = base_prices['open'] * base_prices['leverage']
-                #base_prices['norm_high'] = base_prices['high'] * base_prices['leverage']
-                #base_prices['norm_low'] = base_prices['low'] * base_prices['leverage']
-                #base_prices['norm_close'] = base_prices['close'] * base_prices['leverage']
                 
         full_res.append(label_df)
         res_df = pd.concat(full_res, axis=1, join='inner')
