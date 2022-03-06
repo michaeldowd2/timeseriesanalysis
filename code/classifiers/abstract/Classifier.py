@@ -15,7 +15,6 @@ class Classifier:
         args = inspect.getargspec(subclass.GenerateModelResults).args
         if 'self' not in args: return False
         if 'dataset' not in args: return False
-        if 'base_prices' not in args: return False
         if 'run_range' not in args: return False
         return True
         
@@ -34,15 +33,6 @@ class Classifier:
         
         plt.title(title)
         plt.show()
-        
-    def PredictForDate(self, df, prev_price, date, scaler, pca, model):
-        sampled_df = self.SampleDataframe(df, date, 1)
-        data = sampled_df.to_numpy()
-        x, y = data[:,:-1], data[:,-1]
-        x = scaler.transform(x)
-        x = pca.transform(x)
-        y_pred = model.predict(x)
-        return y_pred
         
     def GetClassifierDatasetRunRange(self, start_date, end_date, dataset, classifier_data):
         run_ranges = []

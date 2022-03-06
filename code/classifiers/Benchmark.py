@@ -11,7 +11,7 @@ class Benchmark(Classifier):
         self.included = included
         self.excluded = excluded
         
-    def GenerateModelResults(self, dataset, base_prices, run_range):
+    def GenerateModelResults(self, dataset, run_range):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
         for i in range(run_range[0], run_range[-1]+2):
             date = dataset.index[i]

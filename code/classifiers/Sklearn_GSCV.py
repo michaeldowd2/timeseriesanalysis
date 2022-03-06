@@ -35,7 +35,7 @@ class Sklearn_GSCV(Classifier):
         self.included = included
         self.excluded = excluded
     
-    def GenerateModelResults(self, dataset, base_prices, run_range):
+    def GenerateModelResults(self, dataset, run_range):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
         for i in range(run_range[0], run_range[-1]+2):
             date = dataset.index[i]
@@ -43,8 +43,7 @@ class Sklearn_GSCV(Classifier):
 
             sampled_df = self.SampleDataframe(dataset, prev_date, self.samples)
             scaler, pca, model, test_F1 = self.TrainForDate(sampled_df, self.test_ratio, self.classifier, self.param_grid, self.pca_comps)
-            prev_price = base_prices.iloc[i-1,-1]
-            pred = self.PredictForDate(dataset, prev_price, date, scaler, pca, model)
+            pred = self.PredictForDate(dataset, date, scaler, pca, model)
 
             res_dict['date'].append(date)
             prediction = -1
@@ -75,7 +74,6 @@ class Sklearn_GSCV(Classifier):
 
         clf = GridSearchCV(model, param_grid, refit=True, scoring='neg_root_mean_squared_error')
         best_model = clf.fit(x_train, y_train) # model.fit(x_train,y_train)
-        y_train_pred = best_model.predict(x_train)
         y_test_pred = best_model.predict(x_test)
 
         accuracy_test = accuracy_score(y_test, y_test_pred)
@@ -85,5 +83,14 @@ class Sklearn_GSCV(Classifier):
         self.PlotPredVsAct(y_test_pred, y_test, 'acc: ' + str(accuracy_test) + ', f1: ' + str(f1_test))
         
         return scaler, pca, best_model, f1_test
+    
+    def PredictForDate(self, df, date, scaler, pca, model):
+        sampled_df = self.SampleDataframe(df, date, 1)
+        data = sampled_df.to_numpy()
+        x, y = data[:,:-1], data[:,-1]
+        x = scaler.transform(x)
+        x = pca.transform(x)
+        y_pred = model.predict(x)
+        return y_pred
     
 

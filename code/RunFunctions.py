@@ -110,14 +110,14 @@ def RunClassifierData(runid, prices, price_data, datasets, price_dataset_data, c
                 elif run_mode == 'generate':
                     print('generating classifier data for: ' + c + '_' + d + '_' + p)
                     start_ind, end_ind = price_dataset_data[p][d].index.get_loc(start_date), price_dataset_data[p][d].index.get_loc(end_date)
-                    classifier_results[c] = classifiers[c].GenerateModelResults(price_dataset_data[p][d], price_data[p], range(start_ind, end_ind)) 
+                    classifier_results[c] = classifiers[c].GenerateModelResults(price_dataset_data[p][d], range(start_ind, end_ind)) 
                 elif run_mode == 'file_or_generate':
                     print('loading or generating classifier data for: ' + c + '_' + d + '_' + p)
                     classifier_data = []
                     if os.path.exists('output\\' + runid + '\\classifiers\\' + c + '_' + d + '_' + p + '.csv'):
                         classifier_data.append(pd.read_csv('output\\' + runid + '\\classifiers\\' + c + '_' + d + '_' + p + '.csv', index_col = 'date'))
                     for run_range in classifiers[c].GetClassifierDatasetRunRange(start_date, end_date, price_dataset_data[p][d], classifier_data):
-                        classifier_data.append(classifiers[c].GenerateModelResults(price_dataset_data[p][d], price_data[p], run_range))
+                        classifier_data.append(classifiers[c].GenerateModelResults(price_dataset_data[p][d], run_range))
                     classifier_results[c] = pd.concat(classifier_data)
                     classifier_results[c].sort_values(['date'], inplace=True)
 
