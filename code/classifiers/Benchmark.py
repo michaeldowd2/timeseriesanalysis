@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 from random import seed
 from random import random
+from code.classifiers.abstract.Classifier import Classifier
 
-class Benchmark:
+class Benchmark(Classifier):
     def __init__(self, benchmark_type, included = {}, excluded = {}):
         seed(42)
         self.benchmark_type = benchmark_type

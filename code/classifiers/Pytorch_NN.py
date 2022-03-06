@@ -1,33 +1,17 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from code.classifiers.abstract.Classifier import Classifier
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
-
 from sklearn.model_selection import GridSearchCV
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-
-from sklearn import svm
-from sklearn.linear_model import Perceptron
-from sklearn.svm import SVC
-from sklearn.linear_model import LinearRegression
-from sklearn.svm import SVR
-from sklearn.linear_model import SGDRegressor
 
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
-class Sklearn_GSCV:
+class Pytorch_NN(Classifier):
     def __init__(self, pca_comps, samples, test_ratio, classifier, param_grid, included = {}, excluded = {}):
         self.pca_comps = pca_comps
         self.samples = samples
@@ -37,9 +21,9 @@ class Sklearn_GSCV:
         self.included = included
         self.excluded = excluded
     
-    def GenerateModelResults(self, dataset, base_prices, regression_range):
+    def GenerateModelResults(self, dataset, base_prices, run_range):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
-        for i in range(regression_range[0], regression_range[-1]+2):
+        for i in range(run_range[0], run_range[-1]+2):
             date = dataset.index[i]
             prev_date = dataset.index[i-1]
 
@@ -75,40 +59,18 @@ class Sklearn_GSCV:
         
         print('pca variance: ' + str(sum(pca.explained_variance_ratio_)))
 
-        clf = GridSearchCV(model, param_grid, refit=True, scoring='neg_root_mean_squared_error')
-        best_model = clf.fit(x_train, y_train) # model.fit(x_train,y_train)
+        #clf = GridSearchCV(model, param_grid, refit=True, scoring='neg_root_mean_squared_error')
+        #best_model = clf.fit(x_train, y_train) # model.fit(x_train,y_train)
+        
         y_train_pred = best_model.predict(x_train)
         y_test_pred = best_model.predict(x_test)
 
         accuracy_test = accuracy_score(y_test, y_test_pred)
         f1_test = f1_score(y_test, y_test_pred, average='weighted')
 
-        print('best params: ' + str(best_model.best_params_))
+        #print('best params: ' + str(best_model.best_params_))
         self.PlotPredVsAct(y_test_pred, y_test, 'acc: ' + str(accuracy_test) + ', f1: ' + str(f1_test))
         
         return scaler, pca, best_model, f1_test
     
-    def SampleDataframe(self, df, date, no_samples):
-        ind = df.index.get_loc(date)
-        if ind-no_samples > 0:
-            df = df.iloc[ind+1-no_samples:ind+1,:]
-            return df
-        return None
-    
-    def PlotPredVsAct(self, pred, acts, title):
-        plt.figure(figsize=(7, 2))
-        plt.plot(pred, label = "predictions")
-        plt.plot(acts, label = "actual")
-        plt.legend(loc="upper left")
-        
-        plt.title(title)
-        plt.show()
-        
-    def PredictForDate(self, df, prev_price, date, scaler, pca, model):
-        sampled_df = self.SampleDataframe(df, date, 1)
-        data = sampled_df.to_numpy()
-        x, y = data[:,:-1], data[:,-1]
-        x = scaler.transform(x)
-        x = pca.transform(x)
-        y_pred = model.predict(x)
-        return y_pred
+

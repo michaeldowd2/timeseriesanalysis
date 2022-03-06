@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import pandas as pd
 
 class Mean_LERP:
@@ -59,3 +60,11 @@ class Mean_LERP:
         else:
             print('no traders included in allocator')
             return None
+    
+    def GeneratePortfolioReturns(self, portfolio_result, rolls = [3, 5]):
+        df = portfolio_result[['date','weight','weighted_pal']]
+        df = df.groupby(['date']).sum().reset_index()
+        for roll in rolls:
+            df[str(roll) + 'D_mean'] = df['weighted_pal'].rolling(roll).mean()
+            df[str(roll) + 'D_cumprod'] = (1 + df['weighted_pal']).rolling(roll).apply(np.prod, raw=True) - 1
+        return df
