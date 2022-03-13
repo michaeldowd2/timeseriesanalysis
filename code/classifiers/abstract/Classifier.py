@@ -57,13 +57,13 @@ class Classifier:
                 run_ranges.append(range(start_ind, existing_start_ind))
             elif start_ind > existing_end_ind:
                 print('existing file ends before specified start date - running from end of file: ' + existing_edate + ' -> ' + end_date)
-                run_ranges.append(range(existing_end_ind, end_ind))
+                run_ranges.append(range(existing_end_ind+1, end_ind))
             else: 
                 if start_ind < existing_start_ind:
                     print('running up to start of file: ' + start_date + ' -> ' + existing_sdate)
                     run_ranges.append(range(start_ind, existing_start_ind))
                 if end_ind > existing_end_ind+1:
                     print('running from end of file: ' + existing_edate + ' -> ' + end_date)
-                    run_ranges.append(range(existing_end_ind, end_ind))
+                    run_ranges.append(range(existing_end_ind+1, end_ind))
         return run_ranges 
         

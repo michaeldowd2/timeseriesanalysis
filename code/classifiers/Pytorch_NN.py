@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import QuantileTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
@@ -27,8 +28,8 @@ class BinaryClassification(nn.Module):
         
         self.relu = nn.ReLU()
         self.dropout_1 = nn.Dropout(p=dropout)
-        self.dropout_2 = nn.Dropout(p=dropout-0.2)
-        self.dropout_3 = nn.Dropout(p=dropout-0.4)
+        self.dropout_2 = nn.Dropout(p=dropout)
+        self.dropout_3 = nn.Dropout(p=dropout)
         self.batchnorm_1 = nn.BatchNorm1d(128)
         self.batchnorm_2 = nn.BatchNorm1d(64)
         self.batchnorm_3 = nn.BatchNorm1d(32)
@@ -58,6 +59,8 @@ class Pytorch_NN(Classifier):
         self.excluded = excluded
     
     def GenerateModelResults(self, dataset, run_range):
+        include_current_for_test = False
+        
         samples = self.samples
         pca_transform = self.pca_transform
         pca_comps = self.pca_comps
@@ -68,7 +71,11 @@ class Pytorch_NN(Classifier):
         res_dict = {'date':[], 'params':[], 'test_F1': [], 'prediction':[]}
         for i in range(run_range[0], run_range[-1]+2):
             date = dataset.index[i]
-            prev_date = dataset.index[i-1]
+            
+            if include_current_for_test:
+                prev_date = date
+            else:
+                prev_date = dataset.index[i-1]
 
             sampled_df = self.SampleDataframe(dataset, prev_date, samples)
             scaler, pca, model, test_F1 = self.TrainForDate(sampled_df, iterations, test_ratio, pca_comps, pca_transform, dropout)
@@ -88,11 +95,18 @@ class Pytorch_NN(Classifier):
     def TrainForDate(self, sampled_df, iterations, test_ratio, pca_comps, pca_transform, dropout):
         data = sampled_df.to_numpy()
         features, label = data[:,:-1], data[:,-1]
-        scaler = StandardScaler()
+        scaler = QuantileTransformer(n_quantiles=100, random_state=42)
+        #scaler = StandardScaler()
         scl_data = scaler.fit_transform(features)
         x, y = scl_data, label
-
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_ratio, random_state=42)
+        
+        
+        #train on last data, test on first in range
+        size = len(y)
+        test_size = int(test_ratio*len(y))
+        x_train, y_train = x[test_size:,:], y[test_size:]
+        x_test, y_test = x[:test_size,:], y[:test_size]
+        #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_ratio, random_state=42)
 
         #fit pca on train, transform test
         pca = PCA(n_components=pca_comps, random_state=42)
@@ -101,6 +115,7 @@ class Pytorch_NN(Classifier):
             x_test = pca.transform(x_test)
             print('pca variance: ' + str(sum(pca.explained_variance_ratio_)))
 
+        print('x train: ' + str(x_train.shape) + ', y_train: ' + str(y_train.shape) + ', x_test: ' + str(x_test.shape) + ', y_test: ' + str(y_test.shape))
         model = BinaryClassification(dropout, x_train.shape[1])
         model.to(DEVICE)
         

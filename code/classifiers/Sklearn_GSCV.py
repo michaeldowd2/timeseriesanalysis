@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from code.classifiers.abstract.Classifier import Classifier
 
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import QuantileTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.model_selection import GridSearchCV
@@ -27,6 +28,7 @@ from sklearn.metrics import f1_score
 
 class Sklearn_GSCV(Classifier):
     def __init__(self, pca_comps, samples, test_ratio, classifier, param_grid, included = {}, excluded = {}):
+        self.pca_transform = True
         self.pca_comps = pca_comps
         self.samples = samples
         self.test_ratio = test_ratio
@@ -56,22 +58,31 @@ class Sklearn_GSCV(Classifier):
         res = pd.DataFrame(res_dict).set_index('date')
         return res
     
-    def TrainForDate(self, sampled_df, test_size, model, param_grid, pca_comps):
+    def TrainForDate(self, sampled_df, test_ratio, model, param_grid, pca_comps):
+        
         data = sampled_df.to_numpy()
         features, label = data[:,:-1], data[:,-1]
-        scaler = StandardScaler()
+        scaler = QuantileTransformer(n_quantiles=100, random_state=42)
+        #scaler = StandardScaler()
         scl_data = scaler.fit_transform(features)
         x, y = scl_data, label
 
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size, random_state=42)
+        
+        #train on last data, test on first in range
+        size = len(y)
+        test_size = int(test_ratio*len(y))
+        x_train, y_train = x[test_size:,:], y[test_size:]
+        x_test, y_test = x[:test_size,:], y[:test_size]
+        #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_ratio, random_state=42)
 
         #fit pca on train, transform test
         pca = PCA(n_components=pca_comps, random_state=42)
-        x_train = pca.fit_transform(x_train)
-        x_test = pca.transform(x_test)
+        if self.pca_transform:
+            x_train = pca.fit_transform(x_train)
+            x_test = pca.transform(x_test)
+            print('pca variance: ' + str(sum(pca.explained_variance_ratio_)))
         
-        print('pca variance: ' + str(sum(pca.explained_variance_ratio_)))
-
+        print('x train: ' + str(x_train.shape) + ', y_train: ' + str(y_train.shape) + ', x_test: ' + str(x_test.shape) + ', y_test: ' + str(y_test.shape))
         clf = GridSearchCV(model, param_grid, refit=True, scoring='neg_root_mean_squared_error')
         best_model = clf.fit(x_train, y_train) # model.fit(x_train,y_train)
         y_test_pred = best_model.predict(x_test)
@@ -85,11 +96,14 @@ class Sklearn_GSCV(Classifier):
         return scaler, pca, best_model, f1_test
     
     def PredictForDate(self, df, date, scaler, pca, model):
+        pca_transform = False
+        
         sampled_df = self.SampleDataframe(df, date, 1)
         data = sampled_df.to_numpy()
         x, y = data[:,:-1], data[:,-1]
         x = scaler.transform(x)
-        x = pca.transform(x)
+        if self.pca_transform:
+            x = pca.transform(x)
         y_pred = model.predict(x)
         return y_pred
     

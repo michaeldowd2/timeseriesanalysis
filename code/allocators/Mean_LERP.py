@@ -68,3 +68,9 @@ class Mean_LERP:
             df[str(roll) + 'D_mean'] = df['weighted_pal'].rolling(roll).mean()
             df[str(roll) + 'D_cumprod'] = (1 + df['weighted_pal']).rolling(roll).apply(np.prod, raw=True) - 1
         return df
+    
+    def GenerateInstructions(self, date, portfolio_result):
+        df = portfolio_result[(portfolio_result['date'] == date)]
+        df = df[['date','dataset','exit_method','bought_at','amount']]
+        df = df.groupby(['date','dataset','exit_method','bought_at']).sum().reset_index()
+        return df
