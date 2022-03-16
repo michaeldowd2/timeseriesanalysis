@@ -5,8 +5,8 @@ import pandas as pd
 class Mean_LERP:
     def __init__(self, mean_periods = 5, min_lerp = 0, max_lerp = 1, included = {}, excluded = {}):
         self.mean_periods = mean_periods
-        self.min_lerp = min_lerp
-        self.max_lerp = max_lerp
+        self.min_lerp = min_lerp # not used
+        self.max_lerp = max_lerp # not used
         self.included = included
         self.excluded = excluded
         
@@ -17,36 +17,53 @@ class Mean_LERP:
             #pred['min'], pred['max'] = 0.0, 0.0
             #pred[mean_cl] = pred['perc_pal'].rolling(self.mean_periods).mean()
             pred[mean_cl_s] = pred['perc_pal'].rolling(self.mean_periods).mean().shift(1)
-            pred['lerp'] = 1.0
-            pred['weight'] = 1.0
+            pred['lerp'] = 0.0
+            pred['weight'] = 0.0
             
-        for i in range(0, len(predictors[0].index)):
-            minval, maxval, tot = 10000, -10000, 0.0
+        for i in range(self.mean_periods, len(predictors[0].index)):
+            scores = []
             for pred in predictors:
-                val = pred.iloc[i][mean_cl_s]
-                if val < minval:
-                    minval = val
-                if val > maxval:
-                    maxval = val
+                scores.append(pred.iloc[i][mean_cl_s])
                 
-            for pred in predictors:
-                #if minval < 10000:
-                #    pred.at[i, 'min'] = minval
-                #if maxval > -10000:
-                #    pred.at[i, 'max'] = maxval
-                val = pred.iloc[i][mean_cl_s]
-                lerp = self.min_lerp + (val-minval) / (maxval-minval) * (self.max_lerp - self.min_lerp)
-                tot += lerp
-                #print('i: ' + str(i) + ', min: ' + str(minval) + ', max: ' + str(maxval) + ', val: ' + str(val) + ', lerp: ' + str(lerp) + ', tot: ' + str(tot) + ', weight: ' + str(lerp/tot))
-                if not math.isnan(lerp):
-                    pred.at[i, 'lerp'] = lerp
-                #print(pred)
+            normal_scores = self.NormaliseData(scores)
+            #print(str(i)+': ' + str(normal_scores))
+            tot = sum(normal_scores)
             
+            j = 0
             for pred in predictors:
-                lerp = pred.at[i, 'lerp']
-                if not math.isnan(tot) and lerp > 0.0:
-                    pred.at[i, 'weight'] = lerp/tot
+                pred.at[i, 'weight'] = normal_scores[j]/tot
+                j += 1
+                
+            #if len(predictors) > 1:
+            #minval, maxval, tot = 10000, -10000, 0.0
+            #for pred in predictors:
+            #    val = pred.iloc[i][mean_cl_s]
+            #    if val < minval:
+            #        minval = val
+            #    if val > maxval:
+            #        maxval = val
+            #    
+            #for pred in predictors:
+            #    if maxval != minval:
+            #        val = pred.iloc[i][mean_cl_s]
+            #        lerp = self.min_lerp + (val-minval) / (maxval-minval) * (self.max_lerp - self.min_lerp)
+            #        tot += lerp
+            #    #print('i: ' + str(i) + ', min: ' + str(minval) + ', max: ' + str(maxval) + ', val: ' + str(val) + ', lerp: ' + str(lerp) + ', tot: ' + str(tot) + ', weight: ' + str(lerp/tot))
+            #    if not math.isnan(lerp):
+            #        pred.at[i, 'lerp'] = lerp
+            #    #print(pred)
+            #
+            #for pred in predictors:
+            #    lerp = pred.at[i, 'lerp']
+            #    if not math.isnan(tot) and lerp > 0.0:
+            #        pred.at[i, 'weight'] = lerp/tot
         return predictors
+    
+    def NormaliseData(self, data):
+        if len(data) == 1:
+            return [1]
+        else:
+            return list((data - np.min(data)) / (np.max(data) - np.min(data)))
     
     def GeneratePortfolioResults(self, symbol_classifier_predictor_results):
         frames = symbol_classifier_predictor_results

@@ -172,7 +172,7 @@ def RunAllocatorData(runid, prices, price_data, datasets, price_dataset_data, cl
         if run_mode == 'file':
             print('loading allocator data for: ' + a)
             allocator_results[a] = pd.read_csv('output\\' + runid + '\\allocators\\' + a + '.csv')
-        elif run_mode == 'generate':
+        elif run_mode == 'generate': # and a == 'A1':
             trader_dfs = []
             for p in prices:
                 for d in datasets:
@@ -189,7 +189,6 @@ def RunAllocatorData(runid, prices, price_data, datasets, price_dataset_data, cl
             if len(trader_dfs)>0:
                 print('generating allocator data for: ' + a)
                 allocator_results[a] = allocators[a].GeneratePortfolioResults(trader_dfs)
-            
                 if save and run_mode != 'file':
                     allocator_results[a].to_csv('output\\' + runid + '\\allocators\\'  + a + '.csv', index=False)
 
