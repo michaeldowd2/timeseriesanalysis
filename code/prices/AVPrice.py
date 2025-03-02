@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import requests
+import os
 
-AV_KEY='5AK7ZPDAGCNO39B7'
+AV_KEY = os.getenv('ALPHA_VANTAGE_API_KEY', '')  # Get API key from environment variable
 
 class AVPrice:
     def __init__(self, symbol, normalise=True, std_period = 20, target_std = 0.015):
@@ -46,4 +47,3 @@ class AVPrice:
         base_prices['norm_low'] = base_prices['low'] * base_prices['leverage']
         base_prices['norm_close'] = base_prices['close'] * base_prices['leverage']
         return base_prices
-        
